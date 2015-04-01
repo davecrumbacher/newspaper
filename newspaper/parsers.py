@@ -54,8 +54,9 @@ class Parser(object):
             cls.doc = lxml.html.fromstring(html)
             return cls.doc
         except Exception:
-            traceback.print_exc()
-            return None
+            #traceback.print_exc()
+            #return None
+            raise
 
     @classmethod
     def clean_article_html(cls, node):

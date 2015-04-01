@@ -104,7 +104,8 @@ def keywords(text):
     sorts them in reverse natural order (so descending) by number of
     occurrences.
     """
-    NUM_KEYWORDS = 10
+    #NUM_KEYWORDS = 10
+    NUM_KEYWORDS = 3
     text = split_words(text)
     # of words before removing blacklist words
     if text:
