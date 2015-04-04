@@ -16,6 +16,7 @@ import copy
 from dateutil.parser import parse as date_parser
 import json
 import logging
+from lxml.etree import tostring
 import re
 import urlparse
 
@@ -103,7 +104,7 @@ class ContentExtractor(object):
             search_str = re.sub('<[^<]+?>', '', search_str)
 
             # Remove original By statement
-            search_str = re.sub('[bB][yY][\:\s]|[fF]rom[\:\s]', '', search_str)
+            search_str = re.sub('[rR]eporting [bB]y[\:\s]|[bB][yY][\:\s]|[fF]rom[\:\s]', '', search_str)
 
             search_str = search_str.strip()
 
@@ -153,8 +154,8 @@ class ContentExtractor(object):
                 n = match.xpath('//div[@class="nameInner"]')
                 if len(n) > 0:
                     content = n[0].text.strip()
-                else:
-                    content = ' '.join([t.strip() for t in match.itertext()]).strip()
+                #else:
+                #    content = ' '.join([t.strip() for t in match.itertext()]).strip()
             elif match.tag == 'meta':
                 pp = match.xpath('//meta[@name="parsely-page"]/@content')
                 if len(pp) > 0:
@@ -172,17 +173,15 @@ class ContentExtractor(object):
             if len(content) > 0:
                 authors.extend(parse_byline(content))
 
-        return uniqify_list(authors)
+        #if len(authors) > 0:
+        #    return uniqify_list(authors)
 
-        # TODO Method 2: Search raw html for a by-line
-        # match = re.search('By[\: ].*\\n|From[\: ].*\\n', html)
-        # try:
-        #    # Don't let zone be too long
-        #    line = match.group(0)[:100]
-        #    authors = parse_byline(line)
-        # except:
-        #    return [] # Failed to find anything
-        # return authors
+        # Method 2: Search raw html for a by-line
+        html = tostring(doc)
+        matches = re.findall(r'By[\: ].*\\n|From[\: ].*\\n|\(Reporting by[\: ].*\)', html)
+        for match in matches:
+            authors.extend(parse_byline(match))
+        return authors
 
     def get_publishing_date(self, url, doc):
         """3 strategies for publishing date extraction. The strategies
