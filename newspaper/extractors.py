@@ -138,7 +138,7 @@ class ContentExtractor(object):
         # Try 1: Search popular author tags for authors
 
         ATTRS = ['name', 'rel', 'itemprop', 'class', 'id']
-        VALS = ['author', 'byline', 'dc.creator', 'credit', 'parsely-page', 'nameOuter']
+        VALS = ['author', 'author-name', 'byline', 'dc.creator', 'parsely-page', 'nameOuter']
         matches = []
         authors = []
 
@@ -146,7 +146,8 @@ class ContentExtractor(object):
             for val in VALS:
                 # found = doc.xpath('//*[@%s="%s"]' % (attr, val))
                 found = self.parser.getElementsByTag(doc, attr=attr, value=val)
-                matches.extend(found)
+                if len(found) > 0:
+                    matches.extend(found)
 
         for match in matches:
             content = u''
@@ -154,8 +155,8 @@ class ContentExtractor(object):
                 n = match.xpath('//div[@class="nameInner"]')
                 if len(n) > 0:
                     content = n[0].text.strip()
-                #else:
-                #    content = ' '.join([t.strip() for t in match.itertext()]).strip()
+            elif match.tag == 'h1' or match.tag == 'h2' or match.tag == 'h3' or match.tag == 'h4':
+                content = ' '.join([t.strip() for t in match.itertext()]).strip()
             elif match.tag == 'meta':
                 pp = match.xpath('//meta[@name="parsely-page"]/@content')
                 if len(pp) > 0:
@@ -173,8 +174,8 @@ class ContentExtractor(object):
             if len(content) > 0:
                 authors.extend(parse_byline(content))
 
-        #if len(authors) > 0:
-        #    return uniqify_list(authors)
+        if len(authors) > 0:
+            authors = uniqify_list(authors)
 
         # Method 2: Search raw html for a by-line
         html = tostring(doc)
