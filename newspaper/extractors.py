@@ -117,7 +117,7 @@ class ContentExtractor(object):
             _authors = []
             # List of first, last name tokens
             curname = []
-            DELIM = ['and', ',', '']
+            DELIM = ['and', ',', ';', '']
 
             for token in name_tokens:
                 if token in DELIM:
@@ -135,21 +135,30 @@ class ContentExtractor(object):
 
             return _authors
 
+        # Remove certain sections of the doc first
+        ATTRS = ['class']
+        VALS = ['related-content', 'more_topic']
+        for attr in ATTRS:
+            for val in VALS:
+                for elem in doc.xpath("//*[contains(concat(' ', normalize-space(@{0}), ' '), ' {1} ')]".format(attr, val)):
+                    elem.getparent().remove(elem)
+
         # Try 1: Search popular author tags for authors
 
         ATTRS = ['name', 'rel', 'itemprop', 'class', 'id']
-        VALS = ['author', 'author-name', 'byline', 'dc.creator', 'parsely-page', 'nameOuter']
+        VALS = ['author', 'author-name', 'article:author', 'ces:authors', 'byline', 'dc.creator', 'parsely-page', 'nameOuter']
         matches = []
         authors = []
 
         for attr in ATTRS:
             for val in VALS:
                 # found = doc.xpath('//*[@%s="%s"]' % (attr, val))
-                found = self.parser.getElementsByTag(doc, attr=attr, value=val)
-                if len(found) > 0:
-                    matches.extend(found)
+                #found = self.parser.getElementsByTag(doc, attr=attr, value=val)
+                for elem in doc.xpath("//*[contains(concat(' ', normalize-space(@{0}), ' '), ' {1} ')]".format(attr, val)):
+                    matches.append(elem)
 
         for match in matches:
+            print 'tag='+match.tag
             content = u''
             if match.tag == 'div':
                 n = match.xpath('//div[@class="nameInner"]')
@@ -177,11 +186,17 @@ class ContentExtractor(object):
         if len(authors) > 0:
             authors = uniqify_list(authors)
 
-        # Method 2: Search raw html for a by-line
-        html = tostring(doc)
-        matches = re.findall(r'By[\: ].*\\n|From[\: ].*\\n|\(Reporting by[\: ].*\)', html)
-        for match in matches:
-            authors.extend(parse_byline(match))
+        # Method 2: Search raw html for a by-line if no authors found yet
+        if len(authors) == 0:
+            html = tostring(doc)
+            matches = re.findall(r'[bB]y[\: ].*\\n|[fF]rom[\: ].*\\n|\([rR]eporting [bB]y[\: ].*\)|[aA]uthor: .*', html)
+            for match in matches:
+                if 'Editing' in match:
+                    match = match.split('Editing')[0].strip()
+                elif 'editing' in match:
+                    match = match.split('editing')[0].strip()
+                authors.extend(parse_byline(match))
+
         return authors
 
     def get_publishing_date(self, url, doc):
