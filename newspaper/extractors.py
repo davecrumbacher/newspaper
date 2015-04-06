@@ -146,7 +146,7 @@ class ContentExtractor(object):
         # Try 1: Search popular author tags for authors
 
         ATTRS = ['name', 'rel', 'itemprop', 'class', 'id']
-        VALS = ['author', 'author-name', 'article:author', 'ces:authors', 'byline', 'dc.creator', 'parsely-page', 'nameOuter']
+        VALS = ['author', 'author-name', 'article:author', 'ces:authors', 'byline', 'dc.creator', 'parsely-page', 'nameOuter', 'sailthru.author']
         matches = []
         authors = []
 
@@ -158,7 +158,6 @@ class ContentExtractor(object):
                     matches.append(elem)
 
         for match in matches:
-            print 'tag='+match.tag
             content = u''
             if match.tag == 'div':
                 n = match.xpath('//div[@class="nameInner"]')
@@ -181,7 +180,11 @@ class ContentExtractor(object):
             else:
                 content = match.text or u''
             if len(content) > 0:
-                authors.extend(parse_byline(content))
+                res = parse_byline(content)
+                for s in res:
+                    if ' ' in s:
+                        parsed = parse_byline(s)
+                        authors.append(s)
 
         if len(authors) > 0:
             authors = uniqify_list(authors)
