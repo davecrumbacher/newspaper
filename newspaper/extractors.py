@@ -137,7 +137,7 @@ class ContentExtractor(object):
 
         # Remove certain sections of the doc first
         ATTRS = ['class']
-        VALS = ['related-content', 'more_topic']
+        VALS = ['related-content', 'more_topic', 'content-footer']
         for attr in ATTRS:
             for val in VALS:
                 for elem in doc.xpath("//*[contains(concat(' ', normalize-space(@{0}), ' '), ' {1} ')]".format(attr, val)):
