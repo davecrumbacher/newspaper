@@ -186,9 +186,6 @@ class ContentExtractor(object):
                         parsed = parse_byline(s)
                         authors.append(s)
 
-        if len(authors) > 0:
-            authors = uniqify_list(authors)
-
         # Method 2: Search raw html for a by-line if no authors found yet
         if len(authors) == 0:
             html = tostring(doc)
@@ -200,6 +197,26 @@ class ContentExtractor(object):
                     match = match.split('editing')[0].strip()
                 authors.extend(parse_byline(match))
 
+        # Method 3: Search for pageinfo script tag
+        if len(authors) == 0:
+            matches = []
+            for elem in doc.xpath("//script[contains(@class, 'pageinfo')]"):
+                matches.append(elem)
+            for match in matches:
+                try:
+                    pageinfo = json.loads(match.text.strip())
+                except:
+                    continue
+                content = pageinfo.get('byline')
+                if content:
+                    res = parse_byline(content)
+                    for s in res:
+                        if ' ' in s:
+                            parsed = parse_byline(s)
+                            authors.append(s)
+
+        if len(authors) > 0:
+            authors = uniqify_list(authors)
         return authors
 
     def get_publishing_date(self, url, doc):
