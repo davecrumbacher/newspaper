@@ -84,11 +84,14 @@ class ContentExtractor(object):
         def uniqify_list(l):
            """Remove duplicates from provided list but maintain original order.
               Derived from http://www.peterbe.com/plog/uniqifiers-benchmark
+              Also removes derivations of "author" from the list, which we don't want.
            """
            seen = {}
            result = []
            for item in l:
                if item.lower() in seen: continue
+               if item.lower() == 'author':
+                   continue
                seen[item.lower()] = 1
                result.append(item.title())
            return result
