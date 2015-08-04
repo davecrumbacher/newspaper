@@ -109,7 +109,9 @@ class ContentExtractor(object):
             # Remove original By statement
             search_str = re.sub('[rR]eporting [bB]y[\:\s]|[bB][yY][\:\s]|[fF]rom[\:\s]', '', search_str)
 
+            # Clean up string
             search_str = search_str.strip()
+            search_str = search_str.replace('_', ' ')
 
             # Chunk the line by non alphanumeric tokens (few name exceptions)
             # >>> re.split("[^\w\'\-\.]", "Tyler G. Jones, Lucas Ou, Dean O'Brian and Ronald")
@@ -122,16 +124,19 @@ class ContentExtractor(object):
             curname = []
             DELIM = ['and', ',', ';', '']
 
+            print 'name_tokens='+repr(name_tokens)
             for token in name_tokens:
                 if token in DELIM:
                     if len(curname) > 0:
                         _authors.append(' '.join(curname))
                         curname = []
 
-                elif not contains_digits(token):
+                #elif not contains_digits(token):
+                else:
                     curname.append(token)
 
             # One last check at end
+            print 'curname='+repr(curname)
             valid_name = (len(curname) >= 2)
             if valid_name:
                 _authors.append(' '.join(curname))
@@ -194,18 +199,7 @@ class ContentExtractor(object):
                         parsed = parse_byline(s)
                         authors.append(s)
 
-        # Method 2: Search raw html for a by-line if no authors found yet
-        if len(authors) == 0:
-            html = tostring(doc)
-            matches = re.findall(r'[bB]y[\: ].*\\n|[fF]rom[\: ].*\\n|\([rR]eporting [bB]y[\: ].*\)|[aA]uthor: .*', html)
-            for match in matches:
-                if 'Editing' in match:
-                    match = match.split('Editing')[0].strip()
-                elif 'editing' in match:
-                    match = match.split('editing')[0].strip()
-                authors.extend(parse_byline(match))
-
-        # Method 3: Search for pageinfo script tag
+        # Method 2: Search for pageinfo script tag
         if len(authors) == 0:
             matches = []
             for elem in doc.xpath("//script[contains(@class, 'pageinfo')]"):
@@ -222,6 +216,18 @@ class ContentExtractor(object):
                         if ' ' in s:
                             parsed = parse_byline(s)
                             authors.append(s)
+
+        # Method 3: Search raw html for a by-line if no authors found yet
+        if len(authors) == 0:
+            html = tostring(doc)
+            matches = re.findall(r'[bB]y[\: ].+?\\n|[fF]rom[\: ].+?\\n|\([rR]eporting [bB]y[\: ].+?\)|[aA]uthor: .*|"[aA]uthor":\s*\"(.+?)\"', html)
+            for match in matches:
+                print '-- match: '+repr(match)
+                if 'Editing' in match:
+                    match = match.split('Editing')[0].strip()
+                elif 'editing' in match:
+                    match = match.split('editing')[0].strip()
+                authors.extend(parse_byline(match))
 
         if len(authors) > 0:
             authors = uniqify_list(authors)
