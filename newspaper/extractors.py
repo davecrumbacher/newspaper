@@ -149,7 +149,7 @@ class ContentExtractor(object):
         # Try 1: Search popular author tags for authors
 
         ATTRS = ['name', 'rel', 'itemprop', 'class', 'id']
-        VALS = ['author', 'author-name', 'article:author', 'ces:authors', 'byline', 'dc.creator', 'parsely-page', 'nameOuter', 'sailthru.author']
+        VALS = ['author', 'author-name', 'article:author', 'ces:authors', 'byline', 'dc.creator', 'parsely-page', 'nameOuter', 'sailthru.author', 'fn', 'createdby']
         matches = []
         authors = []
 
@@ -157,7 +157,11 @@ class ContentExtractor(object):
             for val in VALS:
                 # found = doc.xpath('//*[@%s="%s"]' % (attr, val))
                 #found = self.parser.getElementsByTag(doc, attr=attr, value=val)
-                for elem in doc.xpath("//*[contains(concat(' ', normalize-space(@{0}), ' '), ' {1} ')]".format(attr, val)):
+
+                #for elem in doc.xpath("//*[contains(concat(' ', normalize-space(@{0}), ' '), ' {1} ')]".format(attr, val)):
+                elems = doc.xpath("//*[contains(concat(' ', normalize-space(@{0}), ' '), ' {1} ')]".format(attr.lower(), val.lower(),
+                                    extensions={(None,'lower'): (lambda c,a: a[0].lower())}))
+                for elem in elems:
                     matches.append(elem)
 
         for match in matches:
@@ -182,6 +186,7 @@ class ContentExtractor(object):
                         content = mm[0]
             else:
                 content = match.text or u''
+            content = content.strip()
             if len(content) > 0:
                 res = parse_byline(content)
                 for s in res:
