@@ -223,7 +223,6 @@ class ContentExtractor(object):
             html = tostring(doc)
             matches = re.findall(r'[bB]y[\: ].+?\\n|[fF]rom[\: ].+?\\n|\([rR]eporting [bB]y[\: ].+?\)|[aA]uthor: .*|"[aA]uthor":\s*\"(.+?)\"', html)
             for match in matches:
-                print '-- match: '+repr(match)
                 if 'Editing' in match:
                     match = match.split('Editing')[0].strip()
                 elif 'editing' in match:
