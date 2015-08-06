@@ -89,11 +89,14 @@ class ContentExtractor(object):
            seen = {}
            result = []
            for item in l:
-               if item.lower() in seen: continue
-               if item.lower() == 'author':
+               litem = item.lower()
+               if litem in seen: continue
+               if litem == 'author':
                    continue
-               seen[item.lower()] = 1
-               result.append(item.title())
+               seen[litem] = 1
+               titem = item.title()
+               titem = titem.replace(' And ', ' and ')
+               result.append(titem)
            return result
 
         def parse_byline(search_str):
@@ -124,7 +127,6 @@ class ContentExtractor(object):
             curname = []
             DELIM = ['and', ',', ';', '']
 
-            print 'name_tokens='+repr(name_tokens)
             for token in name_tokens:
                 if token in DELIM:
                     if len(curname) > 0:
@@ -136,7 +138,6 @@ class ContentExtractor(object):
                     curname.append(token)
 
             # One last check at end
-            print 'curname='+repr(curname)
             valid_name = (len(curname) >= 2)
             if valid_name:
                 _authors.append(' '.join(curname))
@@ -154,7 +155,7 @@ class ContentExtractor(object):
         # Try 1: Search popular author tags for authors
 
         ATTRS = ['name', 'rel', 'itemprop', 'class', 'id']
-        VALS = ['author', 'author-name', 'article:author', 'ces:authors', 'byline', 'dc.creator', 'parsely-page', 'nameOuter', 'sailthru.author', 'fn', 'createdby']
+        VALS = ['author', 'author-name', 'article:author', 'ces:authors', 'byline', 'dc.creator', 'parsely-page', 'nameOuter', 'sailthru.author', 'fn', 'createdby', 'parsely-author']
         matches = []
         authors = []
 
