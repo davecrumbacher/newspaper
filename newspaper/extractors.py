@@ -155,7 +155,7 @@ class ContentExtractor(object):
         # Try 1: Search popular author tags for authors
 
         ATTRS = ['name', 'rel', 'itemprop', 'class', 'id']
-        VALS = ['author', 'author-name', 'article:author', 'ces:authors', 'byline', 'dc.creator', 'parsely-page', 'nameOuter', 'sailthru.author', 'fn', 'createdby', 'parsely-author']
+        VALS = ['author', 'author-name', 'article:author', 'ces:authors', 'byline', 'dc.creator', 'parsely-page', 'nameOuter', 'sailthru.author', 'fn', 'createdby', 'parsely-author', 'author-component__name']
         matches = []
         authors = []
 
@@ -184,6 +184,14 @@ class ContentExtractor(object):
                 n = match.xpath('//dd/*/a')
                 if len(n) > 0:
                     content = n[0].text.strip()
+            elif match.tag == 'a':
+                n = match.xpath('//a[@class="author-component__name"]/span')
+                if len(n) > 0:
+                    content = n[0].text.strip()
+            elif match.tag == 'span':
+                n = match.xpath('//span[contains(@class, "author")]/span')
+                if len(n) > 0:
+                    content = n[0].text.strip()
             elif match.tag == 'h1' or match.tag == 'h2' or match.tag == 'h3' or match.tag == 'h4':
                 content = ' '.join([t.strip() for t in match.itertext()]).strip()
             elif match.tag == 'meta':
@@ -201,8 +209,8 @@ class ContentExtractor(object):
                     mm = match.xpath('@content')
                     if len(mm) > 0:
                         content = mm[0]
-            else:
-                content = match.text or u''
+            #else:
+            #    content = match.text or u''
             content = content.strip()
             if len(content) > 0:
                 res = parse_byline(content)
