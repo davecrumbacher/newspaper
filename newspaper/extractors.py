@@ -191,7 +191,10 @@ class ContentExtractor(object):
                 if len(pp) > 0:
                     try:
                         pp_dict = json.loads(pp[0])
-                        content = pp_dict['author']
+                        if 'author' in pp_dict:
+                            content = pp_dict['author']
+                        elif 'authors' in pp_dict:
+                            content = ', '.join(pp_dict['authors'])
                     except:
                         pass
                 else:
