@@ -176,6 +176,14 @@ class ContentExtractor(object):
                 n = match.xpath('//div[@class="nameInner"]')
                 if len(n) > 0:
                     content = n[0].text.strip()
+                else:
+                    n = match.xpath('a')
+                    if len(n) > 0:
+                        content = n[0].text.strip()
+            elif match.tag == 'dd':
+                n = match.xpath('//dd/*/a')
+                if len(n) > 0:
+                    content = n[0].text.strip()
             elif match.tag == 'h1' or match.tag == 'h2' or match.tag == 'h3' or match.tag == 'h4':
                 content = ' '.join([t.strip() for t in match.itertext()]).strip()
             elif match.tag == 'meta':
