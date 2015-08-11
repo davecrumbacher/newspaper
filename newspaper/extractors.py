@@ -72,6 +72,14 @@ class ContentExtractor(object):
             self.stopwords_class = \
                 self.config.get_stopwords_class(meta_lang)
 
+    def _strip(self, string):
+        if not string:
+            return ''
+        if len(string) > 0:
+            return string.strip()
+        else:
+            return ''
+
     def get_authors(self, doc):
         """Fetch the authors of the article, return as a list
         Only works for english articles
@@ -175,25 +183,13 @@ class ContentExtractor(object):
             if match.tag == 'div':
                 n = match.xpath('//div[@class="nameInner"]')
                 if len(n) > 0:
-                    content = n[0].text.strip()
+                    content = self._strip(n[0].text)
                 else:
                     n = match.xpath('a')
                     if len(n) > 0:
-                        content = n[0].text.strip()
-            elif match.tag == 'dd':
-                n = match.xpath('//dd/*/a')
-                if len(n) > 0:
-                    content = n[0].text.strip()
-            elif match.tag == 'a':
-                n = match.xpath('//a[@class="author-component__name"]/span')
-                if len(n) > 0:
-                    content = n[0].text.strip()
-            elif match.tag == 'span':
-                n = match.xpath('//span[contains(@class, "author")]/span')
-                if len(n) > 0:
-                    content = n[0].text.strip()
+                        content = self._strip(n[0].text)
             elif match.tag == 'h1' or match.tag == 'h2' or match.tag == 'h3' or match.tag == 'h4':
-                content = ' '.join([t.strip() for t in match.itertext()]).strip()
+                content = ' '.join([self._strip(t) for t in match.itertext()]).strip()
             elif match.tag == 'meta':
                 pp = match.xpath('//meta[@name="parsely-page"]/@content')
                 if len(pp) > 0:
@@ -209,9 +205,24 @@ class ContentExtractor(object):
                     mm = match.xpath('@content')
                     if len(mm) > 0:
                         content = mm[0]
-            #else:
-            #    content = match.text or u''
-            content = content.strip()
+            else:
+                n = match.xpath('./span')
+                if len(n) > 0:
+                    content = self._strip(n[0].text)
+                if len(content) < 3:
+                    n = match.xpath('./a')
+                    if len(n) > 0:
+                        content = self._strip(n[0].text)
+                if len(content) < 3:
+                    n = match.xpath('./*/span')
+                    if len(n) > 0:
+                        content = self._strip(n[0].text)
+                    if len(content) < 3:
+                        n = match.xpath('./*/a')
+                        if len(n) > 0:
+                            content = self._strip(n[0].text)
+
+            content = self._strip(content)
             if len(content) > 0:
                 res = parse_byline(content)
                 for s in res:
