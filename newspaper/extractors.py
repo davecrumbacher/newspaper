@@ -146,15 +146,16 @@ class ContentExtractor(object):
                     curname.append(token)
 
             # One last check at end
-            valid_name = (len(curname) >= 2)
+            valid_name = (len(curname) >= 2 and len(curname) <= 7)
             if valid_name:
                 _authors.append(' '.join(curname))
-
-            return _authors
+                return _authors
+            else:
+                return []
 
         # Remove certain sections of the doc first
         ATTRS = ['class']
-        VALS = ['related-content', 'more_topic', 'content-footer']
+        VALS = ['related-content', 'more_topic', 'content-footer', 'wrapper-component']
         for attr in ATTRS:
             for val in VALS:
                 for elem in doc.xpath("//*[contains(concat(' ', normalize-space(@{0}), ' '), ' {1} ')]".format(attr, val)):
@@ -163,7 +164,7 @@ class ContentExtractor(object):
         # Try 1: Search popular author tags for authors
 
         ATTRS = ['name', 'rel', 'itemprop', 'class', 'id']
-        VALS = ['author', 'author-name', 'article:author', 'ces:authors', 'byline', 'dc.creator', 'parsely-page', 'nameOuter', 'sailthru.author', 'fn', 'createdby', 'parsely-author', 'author-component__name']
+        VALS = ['author', 'author-name', 'article:author', 'ces:authors', 'byline', 'dc.creator', 'parsely-page', 'nameOuter', 'sailthru.author', 'fn', 'createdby', 'parsely-author', 'author-component__name', 'article_byline']
         matches = []
         authors = []
 
@@ -185,9 +186,17 @@ class ContentExtractor(object):
                 if len(n) > 0:
                     content = self._strip(n[0].text)
                 else:
-                    n = match.xpath('a')
+                    n = match.xpath('./a')
                     if len(n) > 0:
                         content = self._strip(n[0].text)
+                    if len(content) < 3:
+                        n = match.xpath('./em/span')
+                        if len(n) > 0:
+                            content = self._strip(n[0].text)
+                        if len(content) < 3:
+                            n = match.xpath('./em/a')
+                            if len(n) > 0:
+                                content = self._strip(n[0].text)
             elif match.tag == 'h1' or match.tag == 'h2' or match.tag == 'h3' or match.tag == 'h4':
                 content = ' '.join([self._strip(t) for t in match.itertext()]).strip()
             elif match.tag == 'meta':
@@ -221,6 +230,9 @@ class ContentExtractor(object):
                         n = match.xpath('./*/a')
                         if len(n) > 0:
                             content = self._strip(n[0].text)
+
+            if len(content) == 0:
+                content = self._strip(match.text)
 
             content = self._strip(content)
             if len(content) > 0:
