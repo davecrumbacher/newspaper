@@ -138,20 +138,17 @@ class ContentExtractor(object):
             for token in name_tokens:
                 if token in DELIM:
                     if len(curname) > 0:
-                        _authors.append(' '.join(curname))
+                        if (len(curname) >= 2 and len(curname) <= 7):
+                            _authors.append(' '.join(curname))
                         curname = []
 
                 #elif not contains_digits(token):
                 else:
                     curname.append(token)
 
-            # One last check at end
-            valid_name = (len(curname) >= 2 and len(curname) <= 7)
-            if valid_name:
+            if (len(curname) >= 2 and len(curname) <= 7):
                 _authors.append(' '.join(curname))
-                return _authors
-            else:
-                return []
+            return _authors
 
         # Remove certain sections of the doc first
         ATTRS = ['class']
@@ -214,6 +211,7 @@ class ContentExtractor(object):
                     mm = match.xpath('@content')
                     if len(mm) > 0:
                         content = mm[0]
+
             else:
                 n = match.xpath('./span')
                 if len(n) > 0:
