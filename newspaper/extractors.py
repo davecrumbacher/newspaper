@@ -269,6 +269,11 @@ class ContentExtractor(object):
                     match = match.split('editing')[0].strip()
                 authors.extend(parse_byline(match))
 
+        if len(authors) == 0:
+            matches = doc.xpath("//*[contains(@property, 'foaf:name')]")
+            for match in matches:
+                authors.extend(parse_byline(match.text))
+
         if len(authors) > 0:
             authors = uniqify_list(authors)
         return authors
