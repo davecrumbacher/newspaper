@@ -194,6 +194,10 @@ class ContentExtractor(object):
                             n = match.xpath('./em/a')
                             if len(n) > 0:
                                 content = self._strip(n[0].text)
+                            if len(content) < 3:
+                                n = match.xpath('./p')
+                                if len(n) > 0:
+                                    content = self._strip(n[0].text)
             elif match.tag == 'h1' or match.tag == 'h2' or match.tag == 'h3' or match.tag == 'h4':
                 content = ' '.join([self._strip(t) for t in match.itertext()]).strip()
             elif match.tag == 'meta':
