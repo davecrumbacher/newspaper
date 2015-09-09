@@ -152,7 +152,7 @@ class ContentExtractor(object):
 
         # Remove certain sections of the doc first
         ATTRS = ['class']
-        VALS = ['related-content', 'more_topic', 'content-footer', 'wrapper-component']
+        VALS = ['related-content', 'more_topic', 'content-footer', 'wrapper-component', 'title_overlay']
         for attr in ATTRS:
             for val in VALS:
                 for elem in doc.xpath("//*[contains(concat(' ', normalize-space(@{0}), ' '), ' {1} ')]".format(attr, val)):
@@ -178,7 +178,7 @@ class ContentExtractor(object):
 
         for match in matches:
             content = u''
-            if match.tag == 'div':
+            if match.tag == 'div' or match.tag == 'span':
                 n = match.xpath('//div[@class="nameInner"]')
                 if len(n) > 0:
                     content = self._strip(n[0].text)
@@ -216,7 +216,7 @@ class ContentExtractor(object):
                     if len(mm) > 0:
                         content = mm[0]
 
-            else:
+            if len(content) == 0:
                 n = match.xpath('./span')
                 if len(n) > 0:
                     content = self._strip(n[0].text)
